@@ -22,8 +22,8 @@ if __name__ == '__main__':
     start_time = time.time()
     start_ctime = time.clock()
     try:
-        dc = ForestCoverClassifier(runinfo)
-        dc.cluster()
+        fcc = ForestCoverClassifier(runinfo)
+        fcc.classify()
         end_time = time.time()
         end_ctime = time.clock()
         print('Success: wall time:  %f sec, processor time: %f sec'
