@@ -15,6 +15,7 @@ from copy import deepcopy
 import array
 from sklearn.svm import LinearSVC
 from sklearn.svm import SVC
+from sklearn.ensemble import RandomForestClassifier
 import matplotlib.pyplot as plt
 import itertools
 import sys
@@ -163,6 +164,8 @@ class ForestCoverClassifier:
 
 	clf = classifyFunc(**classifyArgs)
 	clf.fit(self.X_train, self.y_train)
+	if hasattr(clf, 'oob_score_'):
+		print('OOB Score: %f' % clf.oob_score_)
 	self.y_pred = clf.predict(self.X_test)
 	self.y_pred = self.y_pred.astype(int)
 
@@ -213,25 +216,50 @@ class ForestCoverClassifier:
 		
 
     def classify(self):
+    	rfVarParams = {
+			'n_estimators':[100],
+			'criterion':['gini']
+		      }
 
-        # Classification
-        ## 1) LinearSVC
-        linearSVCVarParams = {'penalty': ['l2']}
-        linearSVCFixedParams = {'loss':'squared_hinge',
-                                'dual':True,
-                                'tol':0.0001,
-                                'C':1.0,
-                                'multi_class':'ovr',
-                                'fit_intercept':True,
-                                'intercept_scaling':1,
-                                'class_weight':'auto',
-                                'verbose':1,
-                                'random_state':self.randomSeed,
-                                'max_iter':1e6
-                               }
-        self.runAlgo(LinearSVC, linearSVCFixedParams, linearSVCVarParams)
-	
+        rfFixedParams = {
+			'max_depth':None,
+			'min_samples_split':2,
+			'min_samples_leaf':1,
+			'min_weight_fraction_leaf':0.0,
+			'max_features':'auto',
+			'max_leaf_nodes':None,
+			'bootstrap':True,
+			'oob_score':True,
+			'n_jobs':4,
+			'random_state':self.randomSeed,
+			'verbose':1,
+			'warm_start':False,
+			'class_weight':'auto'
+		      }
+        self.runAlgo(RandomForestClassifier, rfFixedParams, rfVarParams)
+        self.save_sub()
 
+#    def classify(self):
+#
+#        # Classification
+#        ## 1) LinearSVC
+#        linearSVCVarParams = {'penalty': ['l2']}
+#        linearSVCFixedParams = {'loss':'squared_hinge',
+#                                'dual':True,
+#                                'tol':0.0001,
+#                                'C':1.0,
+#                                'multi_class':'ovr',
+#                                'fit_intercept':True,
+#                                'intercept_scaling':1,
+#                                'class_weight':'auto',
+#                                'verbose':1,
+#                                'random_state':self.randomSeed,
+#                                'max_iter':1e6
+#                               }
+#        self.runAlgo(LinearSVC, linearSVCFixedParams, linearSVCVarParams)
+#
+#	
+#	## 2) SVM (kernel)
 #        SVCVarParams = {'C':[1.0]}
 #        SVCFixedParams = { 'kernel':'rbf',
 #                           'degree':3,
@@ -249,7 +277,4 @@ class ForestCoverClassifier:
 #
 #        self.runAlgo(SVC, SVCFixedParams, SVCVarParams)
 
-
-
-	self.save_sub()
 
