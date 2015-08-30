@@ -25,6 +25,7 @@ from sklearn.preprocessing import MinMaxScaler
 #from sklearn.cross_validation import KFold
 from sklearn.cross_validation import StratifiedKFold
 #from sklearn.cross_validation import LeaveOneOut
+import sklearn
 
 class ForestCoverClassifier:
     """Forest Cover Classifer"""
@@ -34,6 +35,8 @@ class ForestCoverClassifier:
 
         self.runinfo = runinfo
         print('Numpy:', np.__version__)
+	print('Pandas:', pd.__version__)
+	print('Scikit-Learn:', sklearn.__version__)
         self.config = ConfigParser.SafeConfigParser()
         self.config.read(settings)
         self.randomSeed = int(self.config.get('system', 'random_seed'))
