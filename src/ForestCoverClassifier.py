@@ -170,11 +170,11 @@ class ForestCoverClassifier:
 
 
 #	clf = classifyFunc(**classifyArgs)
-#	clf.fit(self.X_train, self.y_train)
-#	if hasattr(clf, 'oob_score_'):
-#		print('OOB Score: %f' % clf.oob_score_)
-#	self.y_pred = clf.predict(self.X_test)
-#	self.y_pred = self.y_pred.astype(int)
+	clf.fit(self.X_train, self.y_train)
+	if hasattr(clf, 'oob_score_'):
+		print('OOB Score: %f' % clf.oob_score_)
+	self.y_pred = clf.predict(self.X_test)
+	self.y_pred = self.y_pred.astype(int)
 
 	# print(y_pred)
 
