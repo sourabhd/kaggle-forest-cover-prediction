@@ -305,22 +305,22 @@ class ForestCoverClassifier:
 #
 #        self.runAlgo(SVC, SVCFixedParams, SVCVarParams)
 #
-#	def classify(self):
-#	  
-#	  #ADA Boost
-#	  adaVarParams = { 
-#			   'base_estimator':None,
-#			   'n_estimators':50,
-#			   'learning_rate':1.0
-#			 }
-#	  adaFixedParams = {
-#			     'algorithm':'SAMME.R',
-#			     'random_state':None
-#			   }
-#
-#	  self.runAlgo(AdaBoostClassifier,adaFixedParams,adaVarParams)
-#	  self.save_sub()
-#
+    def classify(self):
+	  
+	  #ADA Boost
+	  adaVarParams = { 
+			   'base_estimator':[None],
+			   'n_estimators':[50],
+			   'learning_rate':[1.0]
+			 }
+	  adaFixedParams = {
+			     'algorithm':'SAMME.R',
+			     'random_state':None
+			   }
+
+	  self.runAlgo(AdaBoostClassifier,adaFixedParams,adaVarParams)
+	  self.save_sub()
+
 #    def classify(self):
 #
 #	    #GradientBoostClassifier
@@ -345,15 +345,15 @@ class ForestCoverClassifier:
 #	    self.runAlgo(GradientBoostingClassifier,gbcFixedParams,gbcVarParams)
 #	    self.save_sub()
 # 	
-    def classify(self):
-	    
-	    #naive-bayes
-	    nbVarParams = {
-			  }
-
-	    nbFixedParams = {
-			    }
-
-	    self.runAlgo(GaussianNB,nbFixedParams,nbVarParams)
-	    self.save_sub()
-    
+#    def classify(self):
+#	    
+#	    #naive-bayes
+#	    nbVarParams = {
+#			  }
+#
+#	    nbFixedParams = {
+#			    }
+#
+#	    self.runAlgo(GaussianNB,nbFixedParams,nbVarParams)
+#	    self.save_sub()
+#    
