@@ -132,49 +132,49 @@ class ForestCoverClassifier:
 
 	# Cross Validation
 	#t_start = time.time()
-#	N = self.X_train.shape[0]
-#	#kf = KFold(N, n_folds=10)
-#	#kf = LeaveOneOut(N)
-#	folds = 10
-#	kf = StratifiedKFold(self.y_train,folds)
-#	i=0
-#	sum_acc = 0
-#	for train,test in kf:
-#		X_train, X_test, y_train, y_test = self.X_train[train], self.X_train[test], self.y_train[train], self.y_train[test]
-#	# X_train, X_test, y_train, y_test = train_test_split(self.X_train,
-#	#						    self.y_train,
-#	#						    test_size=0.2,
-#	#						    random_state=self.randomSeed)
-#	# clf = LinearSVC()
-#		clf = classifyFunc(**classifyArgs)
-#		clf.fit(X_train, y_train)
-#		y_pred = clf.predict(X_test)
-#		score = clf.score(X_test, y_test)
-#		sum_acc = sum_acc + score
-#		CM = metrics.confusion_matrix(y_test, y_pred)
+	N = self.X_train.shape[0]
+	#kf = KFold(N, n_folds=10)
+	#kf = LeaveOneOut(N)
+	folds = 10
+	kf = StratifiedKFold(self.y_train,folds)
+	i=0
+	sum_acc = 0
+	for train,test in kf:
+		X_train, X_test, y_train, y_test = self.X_train[train], self.X_train[test], self.y_train[train], self.y_train[test]
+	# X_train, X_test, y_train, y_test = train_test_split(self.X_train,
+	#						    self.y_train,
+	#						    test_size=0.2,
+	#						    random_state=self.randomSeed)
+	# clf = LinearSVC()
+		clf = classifyFunc(**classifyArgs)
+		clf.fit(X_train, y_train)
+		y_pred = clf.predict(X_test)
+		score = clf.score(X_test, y_test)
+		sum_acc = sum_acc + score
+		CM = metrics.confusion_matrix(y_test, y_pred)
 #	# mAP = metrics.average_precision_score(y_test, y_pred)
 #	#t_end = time.time()
 #	# clRes = {'score': score, 'mAP':mAP, 'CM': CM, 'clf': clf }
-#		clRes = {'score': score, 'CM': CM, 'clf': clf }
-#		print('Score (mean accuracy): %f' % score)
+		clRes = {'score': score, 'CM': CM, 'clf': clf }
+		print('Score (mean accuracy): %f' % score)
 #	# print('Score (mAP): %f' % mAP)
-#		with open(self.CLFile, 'wb') as f2:
-#			pickle.dump(clRes, f2)
+		with open(self.CLFile, 'wb') as f2:
+			pickle.dump(clRes, f2)
 #	# print('Confusion Matrix:')
 #	# print(CM)
 #	#print('Time for runClassifier: %f sec' % (t_end-t_start))
-#		self.showConfusionMatrix(i)
-#		i = i + 1
-#	avg_acc = sum_acc / float(folds)
-#	print('Average Accuracy %f' % avg_acc)
+		self.showConfusionMatrix(i)
+		i = i + 1
+	avg_acc = sum_acc / float(folds)
+	print('Average Accuracy %f' % avg_acc)
 
 
-	clf = classifyFunc(**classifyArgs)
-	clf.fit(self.X_train, self.y_train)
-	if hasattr(clf, 'oob_score_'):
-		print('OOB Score: %f' % clf.oob_score_)
-	self.y_pred = clf.predict(self.X_test)
-	self.y_pred = self.y_pred.astype(int)
+#	clf = classifyFunc(**classifyArgs)
+#	clf.fit(self.X_train, self.y_train)
+#	if hasattr(clf, 'oob_score_'):
+#		print('OOB Score: %f' % clf.oob_score_)
+#	self.y_pred = clf.predict(self.X_test)
+#	self.y_pred = self.y_pred.astype(int)
 
 	# print(y_pred)
 
@@ -214,15 +214,15 @@ class ForestCoverClassifier:
     def save_sub(self):
 	
 	pred_df = pd.DataFrame(self.y_pred, columns=['Cover_Type'])
-	 print(pred_df.head())
+	print(pred_df.head())
 	out_df = pd.concat([self.test_index, pred_df], axis=1)
-	 print(out_df.head())
+	print(out_df.head())
 	fname = self.runinfo['git_rev'][0:8] + ".csv"
 	print(fname)
 	out_df.to_csv(fname, index=False)
 
 
-#     def classify(self):
+#   def classify(self):
 #	
 #	#Nearest Neighbour
 #	nnVarParams = {
@@ -240,7 +240,7 @@ class ForestCoverClassifier:
 #	self.runAlgo(KNeighborsClassifier, nnFixedParams, nnVarParams)
 #	self.save_sub()
 #
-#    def classify(self):
+#   def classify(self):
 #    	
 #	#Random Forest
 #	rfVarParams = {
@@ -266,7 +266,7 @@ class ForestCoverClassifier:
 #        self.runAlgo(RandomForestClassifier, rfFixedParams, rfVarParams)
 #        self.save_sub()
 
-#    def classify(self):
+#   def classify(self):
 #
 #        # Classification
 #        ## 1) LinearSVC
@@ -320,31 +320,31 @@ class ForestCoverClassifier:
 #	  self.runAlgo(AdaBoostClassifier,adaFixedParams,adaVarParams)
 #	  self.save_sub()
 #
-#	def classify(self):
-#
-#	    #GradientBoostClassifier
-#	    gbcVarParams = {	    
-#	  		     'loss':'deviance',
-#			     'learning_rate':0.1,
-#			   }
-#	    gbcFixedParams = {    
-#			 	'n_estimators':100, 
-#				'subsample':1.0,
-#				'min_samples_split':2,
-#				'min_samples_leaf':1,
-#				'min_weight_fraction_leaf':0.0, 
-#				'max_depth':3,
-#				'init':None,
-#				'random_state':None,
-#				'max_features':None,
-#				'verbose':0,
-#				'max_leaf_nodes':None,
-#				'warm_start':False
-#			     }
-#	    self.runAlgo(GradientBoostClassifier,gbcFixedParams,gbcVarParams)
-#	    self.save_sub()
-# 	
-#	def classify(self):
+    def classify(self):
+
+	    #GradientBoostClassifier
+	    gbcVarParams = {	    
+	  		     'loss':['deviance'],
+			   }
+	    gbcFixedParams = {  
+			    	'learning_rate':0.1,
+			 	'n_estimators':100, 
+				'subsample':1.0,
+				'min_samples_split':2,
+				'min_samples_leaf':1,
+				'min_weight_fraction_leaf':0.0, 
+				'max_depth':3,
+				'init':None,
+				'random_state':None,
+				'max_features':None,
+				'verbose':0,
+				'max_leaf_nodes':None,
+				'warm_start':False
+			     }
+	    self.runAlgo(GradientBoostingClassifier,gbcFixedParams,gbcVarParams)
+	    self.save_sub()
+ 	
+#   def classify(self):
 #	    
 #	    #naive-bayes
 #	    nbVarParams = {
