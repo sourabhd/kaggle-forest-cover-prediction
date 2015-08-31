@@ -191,7 +191,7 @@ class ForestCoverClassifier:
             plt.ylabel('True label')
             plt.xlabel('Predicted label')
             # plt.show()
-            plt.savefig('cm_%d.png' % (i))
+            #plt.savefig('cm_%d.png' % (i))
 
     def runAlgo(self, algo, fixedParamsDict, variableParamsDict, patches=True):
 
@@ -223,24 +223,24 @@ class ForestCoverClassifier:
 	out_df.to_csv(fname, index=False)
 
 
-#   def classify(self):
-#	
-#	#Nearest Neighbour
-#	nnVarParams = {
-#			'n_neighbors':5,
-#			'algorithm':['auto','ball_tree','kd_tree','brute']
-#		      }
-#
-#	nnFixedParams = {
-#			  'weights'='uniform',
-#			  'leaf_size':30, 
-#			  'p':2,
-#			  'metric':'minkowski', 
-#			  'metric_params'=None
-#			}
-#	self.runAlgo(KNeighborsClassifier, nnFixedParams, nnVarParams)
-#	self.save_sub()
-#
+    def classify(self):
+	
+	#Nearest Neighbour
+	nnVarParams = {
+			'n_neighbors':[5],
+			'algorithm':['auto']#,'ball_tree','kd_tree','brute']
+		      }
+
+	nnFixedParams = {
+			  'weights':'uniform',
+			  'leaf_size':30, 
+			  'p':2,
+			  'metric':'minkowski', 
+			  'metric_params':None
+			}
+	self.runAlgo(KNeighborsClassifier, nnFixedParams, nnVarParams)
+	self.save_sub()
+
 #   def classify(self):
 #    	
 #	#Random Forest
@@ -305,22 +305,22 @@ class ForestCoverClassifier:
 #
 #        self.runAlgo(SVC, SVCFixedParams, SVCVarParams)
 #
-    def classify(self):
-	  
-	  #ADA Boost
-	  adaVarParams = { 
-			   'base_estimator':[None],
-			   'n_estimators':[50],
-			   'learning_rate':[1.0]
-			 }
-	  adaFixedParams = {
-			     'algorithm':'SAMME.R',
-			     'random_state':None
-			   }
-
-	  self.runAlgo(AdaBoostClassifier,adaFixedParams,adaVarParams)
-	  self.save_sub()
-
+#    def classify(self):
+#	  
+#	  #ADA Boost
+#	  adaVarParams = { 
+#			   'base_estimator':[None],
+#			   'n_estimators':[50],
+#			   'learning_rate':[1.0]
+#			 }
+#	  adaFixedParams = {
+#			     'algorithm':'SAMME.R',
+#			     'random_state':None
+#			   }
+#
+#	  self.runAlgo(AdaBoostClassifier,adaFixedParams,adaVarParams)
+#	  self.save_sub()
+#
 #    def classify(self):
 #
 #	    #GradientBoostClassifier
