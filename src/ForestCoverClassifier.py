@@ -24,6 +24,9 @@ from sklearn_pandas import DataFrameMapper, cross_val_score
 from sklearn.preprocessing import MinMaxScaler
 #from sklearn.cross_validation import KFold
 from sklearn.cross_validation import StratifiedKFold
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.ensemble import GradientBoostingClassifier
+from sklearn.ensemble import AdaBoostClassifier
 #from sklearn.cross_validation import LeaveOneOut
 import sklearn
 
@@ -93,6 +96,7 @@ class ForestCoverClassifier:
 				 ]
                                 )
 
+	
 	self.X_train = mapper.fit_transform(train_df)
 	# print(X_train[0:2,:])
 
@@ -210,37 +214,57 @@ class ForestCoverClassifier:
     def save_sub(self):
 	
 	pred_df = pd.DataFrame(self.y_pred, columns=['Cover_Type'])
-	# print(pred_df.head())
+	 print(pred_df.head())
 	out_df = pd.concat([self.test_index, pred_df], axis=1)
-	# print(out_df.head())
+	 print(out_df.head())
 	fname = self.runinfo['git_rev'][0:8] + ".csv"
 	print(fname)
 	out_df.to_csv(fname, index=False)
-		
 
-    def classify(self):
-    	rfVarParams = {
-			'n_estimators':[100],
-			'criterion':['gini']
-		      }
 
-        rfFixedParams = {
-			'max_depth':None,
-			'min_samples_split':2,
-			'min_samples_leaf':1,
-			'min_weight_fraction_leaf':0.0,
-			'max_features':'auto',
-			'max_leaf_nodes':None,
-			'bootstrap':True,
-			'oob_score':True,
-			'n_jobs':4,
-			'random_state':self.randomSeed,
-			'verbose':1,
-			'warm_start':False,
-			'class_weight':'auto'
-		      }
-        self.runAlgo(RandomForestClassifier, rfFixedParams, rfVarParams)
-        self.save_sub()
+#     def classify(self):
+#	
+#	#Nearest Neighbour
+#	nnVarParams = {
+#			'n_neighbors':5,
+#			'algorithm':['auto','ball_tree','kd_tree','brute']
+#		      }
+#
+#	nnFixedParams = {
+#			  'weights'='uniform',
+#			  'leaf_size':30, 
+#			  'p':2,
+#			  'metric':'minkowski', 
+#			  'metric_params'=None
+#			}
+#	self.runAlgo(KNeighborsClassifier, nnFixedParams, nnVarParams)
+#	self.save_sub()
+#
+#    def classify(self):
+#    	
+#	#Random Forest
+#	rfVarParams = {
+#			'n_estimators':[100],
+#			'criterion':['gini']
+#		      }
+#
+#        rfFixedParams = {
+#			'max_depth':None,
+#			'min_samples_split':2,
+#			'min_samples_leaf':1,
+#			'min_weight_fraction_leaf':0.0,
+#			'max_features':'auto',
+#			'max_leaf_nodes':None,
+#			'bootstrap':True,
+#			'oob_score':True,
+#			'n_jobs':4,
+#			'random_state':self.randomSeed,
+#			'verbose':1,
+#			'warm_start':False,
+#			'class_weight':'auto'
+#		      }
+#        self.runAlgo(RandomForestClassifier, rfFixedParams, rfVarParams)
+#        self.save_sub()
 
 #    def classify(self):
 #
@@ -279,5 +303,56 @@ class ForestCoverClassifier:
 #			}
 #
 #        self.runAlgo(SVC, SVCFixedParams, SVCVarParams)
-
-
+#
+#	def classify(self):
+#	  
+#	  #ADA Boost
+#	  adaVarParams = { 
+#			   'base_estimator':None,
+#			   'n_estimators':50,
+#			   'learning_rate':1.0
+#			 }
+#	  adaFixedParams = {
+#			     'algorithm':'SAMME.R',
+#			     'random_state':None
+#			   }
+#
+#	  self.runAlgo(AdaBoostClassifier,adaFixedParams,adaVarParams)
+#	  self.save_sub()
+#
+#	def classify(self):
+#
+#	    #GradientBoostClassifier
+#	    gbcVarParams = {	    
+#	  		     'loss':'deviance',
+#			     'learning_rate':0.1,
+#			   }
+#	    gbcFixedParams = {    
+#			 	'n_estimators':100, 
+#				'subsample':1.0,
+#				'min_samples_split':2,
+#				'min_samples_leaf':1,
+#				'min_weight_fraction_leaf':0.0, 
+#				'max_depth':3,
+#				'init':None,
+#				'random_state':None,
+#				'max_features':None,
+#				'verbose':0,
+#				'max_leaf_nodes':None,
+#				'warm_start':False
+#			     }
+#	    self.runAlgo(GradientBoostClassifier,gbcFixedParams,gbcVarParams)
+#	    self.save_sub()
+# 	
+#	def classify(self):
+#	    
+#	    #naive-bayes
+#	    nbVarParams = {
+#			  }
+#
+#	    nbFixedParams = {
+#			    }
+#
+#	    self.runAlgo(GaussianNB,nbFixedParams,nbVarParams)
+#	    self.save_sub()
+#    
