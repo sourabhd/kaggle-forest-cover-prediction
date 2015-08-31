@@ -27,6 +27,7 @@ from sklearn.cross_validation import StratifiedKFold
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.ensemble import AdaBoostClassifier
+from sklearn.naive_bayes import GaussianNB
 #from sklearn.cross_validation import LeaveOneOut
 import sklearn
 
@@ -170,7 +171,7 @@ class ForestCoverClassifier:
 
 
 #	clf = classifyFunc(**classifyArgs)
-	clf.fit(self.X_train, self.y_train)
+#	clf.fit(self.X_train, self.y_train)
 	if hasattr(clf, 'oob_score_'):
 		print('OOB Score: %f' % clf.oob_score_)
 	self.y_pred = clf.predict(self.X_test)
@@ -320,39 +321,39 @@ class ForestCoverClassifier:
 #	  self.runAlgo(AdaBoostClassifier,adaFixedParams,adaVarParams)
 #	  self.save_sub()
 #
-    def classify(self):
-
-	    #GradientBoostClassifier
-	    gbcVarParams = {	    
-	  		     'loss':['deviance'],
-			   }
-	    gbcFixedParams = {  
-			    	'learning_rate':0.1,
-			 	'n_estimators':100, 
-				'subsample':1.0,
-				'min_samples_split':2,
-				'min_samples_leaf':1,
-				'min_weight_fraction_leaf':0.0, 
-				'max_depth':3,
-				'init':None,
-				'random_state':None,
-				'max_features':None,
-				'verbose':0,
-				'max_leaf_nodes':None,
-				'warm_start':False
-			     }
-	    self.runAlgo(GradientBoostingClassifier,gbcFixedParams,gbcVarParams)
-	    self.save_sub()
- 	
-#   def classify(self):
-#	    
-#	    #naive-bayes
-#	    nbVarParams = {
-#			  }
+#    def classify(self):
 #
-#	    nbFixedParams = {
-#			    }
-#
-#	    self.runAlgo(GaussianNB,nbFixedParams,nbVarParams)
+#	    #GradientBoostClassifier
+#	    gbcVarParams = {	    
+#	  		     'loss':['deviance'],
+#			   }
+#	    gbcFixedParams = {  
+#			    	'learning_rate':0.1,
+#			 	'n_estimators':100, 
+#				'subsample':1.0,
+#				'min_samples_split':2,
+#				'min_samples_leaf':1,
+#				'min_weight_fraction_leaf':0.0, 
+#				'max_depth':3,
+#				'init':None,
+#				'random_state':None,
+#				'max_features':None,
+#				'verbose':0,
+#				'max_leaf_nodes':None,
+#				'warm_start':False
+#			     }
+#	    self.runAlgo(GradientBoostingClassifier,gbcFixedParams,gbcVarParams)
 #	    self.save_sub()
-#    
+# 	
+    def classify(self):
+	    
+	    #naive-bayes
+	    nbVarParams = {
+			  }
+
+	    nbFixedParams = {
+			    }
+
+	    self.runAlgo(GaussianNB,nbFixedParams,nbVarParams)
+	    self.save_sub()
+    
