@@ -140,7 +140,7 @@ class ForestCoverClassifier:
 				   loss_func=None,
 				   score_func=None,
 				   fit_params=None, 
-				   n_jobs=-1,
+				   n_jobs=1,  # n_jobs = -1
 				   iid=True,
 				   refit=True, 
 				   cv=None, 
@@ -156,7 +156,7 @@ class ForestCoverClassifier:
 		print('Scorer: ', clf.scorer_)
 		y_pred = clf.predict(self.X_test)
 		score = clf.score(self.X_test, y_pred)
-		clRes = {'score': score, 'CM': CM, 'clf': clf }
+		clRes = {'score': score, 'clf': clf }
 		with open(self.CLFile, 'wb') as f2:
 			pickle.dump(clRes, f2)
 	else:
@@ -239,7 +239,7 @@ class ForestCoverClassifier:
 						 exptNum=-1)
 
 		outputDir = self.outDir + os.sep
-		self.save_sub(outputDir, y_test_pred)
+		self.save_sub(outputDir, y_pred)
 	else:
 		# run cross validation to get scores, but train on whole data
 		A = variableParamsDict
