@@ -30,6 +30,8 @@ from sklearn.ensemble import AdaBoostClassifier
 from sklearn.naive_bayes import GaussianNB
 #from sklearn.cross_validation import LeaveOneOut
 import sklearn
+import xgboost as xgb
+from xgboost import XGBClassifier
 
 class ForestCoverClassifier:
     """Forest Cover Classifer"""
@@ -232,24 +234,31 @@ class ForestCoverClassifier:
 
 
     def classify(self):
+
+
+#     XGBoost
+      xgbVarParams = {'objective':['multi:softmax']}
+      xgbFixedParams = {'silent':0}
+      y_pred = self.runAlgo(XGBClassifier, xgbFixedParams, xgbVarParams)
+      print("#Experiments: %d" % (len(y_pred)))
 	
 	#Nearest Neighbour
-	nnVarParams = {
-			'n_neighbors':[5],
-			'algorithm':['auto']#,'ball_tree','kd_tree','brute']
-		      }
-
-	nnFixedParams = {
-			  'weights':'uniform',
-			  'leaf_size':30, 
-			  'p':2,
-			  'metric':'minkowski', 
-			  'metric_params':None
-			}
-	y_pred = self.runAlgo(KNeighborsClassifier, nnFixedParams, nnVarParams)
-	print("#Experiments: %d" % (len(y_pred)))
-
-
+#	nnVarParams = {
+#			'n_neighbors':[5],
+#			'algorithm':['auto']#,'ball_tree','kd_tree','brute']
+#		      }
+#
+#	nnFixedParams = {
+#			  'weights':'uniform',
+#			  'leaf_size':30, 
+#			  'p':2,
+#			  'metric':'minkowski', 
+#			  'metric_params':None
+#			}
+#	y_pred = self.runAlgo(KNeighborsClassifier, nnFixedParams, nnVarParams)
+#	print("#Experiments: %d" % (len(y_pred)))
+#
+#
 #   def classify(self):
 #    	
 #	#Random Forest
