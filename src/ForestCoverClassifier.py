@@ -174,10 +174,11 @@ class ForestCoverClassifier:
 #	clf.fit(self.X_train, self.y_train)
 	if hasattr(clf, 'oob_score_'):
 		print('OOB Score: %f' % clf.oob_score_)
-	self.y_pred = clf.predict(self.X_test)
-	self.y_pred = self.y_pred.astype(int)
+	y_test_pred = clf.predict(self.X_test)
+	y_test_pred = y_test_pred.astype(int)
 
 	# print(y_pred)
+	return y_test_pred
 
 
     def showConfusionMatrix(self,i):
@@ -195,6 +196,7 @@ class ForestCoverClassifier:
 
     def runAlgo(self, algo, fixedParamsDict, variableParamsDict, patches=True):
 
+	y_pred = []
         utils.mkdir_p(self.outDir)
 
         self.readDataset()
@@ -209,14 +211,17 @@ class ForestCoverClassifier:
             params = d.copy()
             params.update(fixedParamsDict)
             print(params)
-            self.runClassifier(algo, params, exptCtr)
+            y_test_pred = self.runClassifier(algo, params, exptCtr)
+	    y_pred.append(y_test_pred)
 	    outputDir = self.outDir + os.sep + 'expt_%d' % (exptCtr)
-	    self.save_sub(outputDir)
+	    self.save_sub(outputDir, y_test_pred)
             exptCtr = exptCtr + 1
 
-    def save_sub(self, outputDir):
+	return y_pred
+
+    def save_sub(self, outputDir, y_test_pred):
 	
-	pred_df = pd.DataFrame(self.y_pred, columns=['Cover_Type'])
+	pred_df = pd.DataFrame(y_test_pred, columns=['Cover_Type'])
 	print(pred_df.head())
 	out_df = pd.concat([self.test_index, pred_df], axis=1)
 	print(out_df.head())
@@ -241,7 +246,9 @@ class ForestCoverClassifier:
 			  'metric':'minkowski', 
 			  'metric_params':None
 			}
-	self.runAlgo(KNeighborsClassifier, nnFixedParams, nnVarParams)
+	y_pred = self.runAlgo(KNeighborsClassifier, nnFixedParams, nnVarParams)
+	print("#Experiments: %d" % (len(y_pred)))
+
 
 #   def classify(self):
 #    	
