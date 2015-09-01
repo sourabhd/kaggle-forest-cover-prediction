@@ -28,6 +28,7 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.ensemble import AdaBoostClassifier
 from sklearn.naive_bayes import GaussianNB
+from sklearn.grid_search import GridSearchCV
 #from sklearn.cross_validation import LeaveOneOut
 import sklearn
 import xgboost as xgb
@@ -110,7 +111,7 @@ class ForestCoverClassifier:
 	# print(X_test[0:2,:])
 
 
-    def runClassifier(self, classifyFunc, classifyArgs, exptNum, patches=True):
+    def runClassifier(self, classifyFunc, classifyArgs, gridsearchArgs=None, n_folds=10, exptNum=-1):
         """ Run classifier on the feature vectors """
 
         self.outRunDir = self.outDir + os.sep + 'expt_%d' % (exptNum) 
@@ -133,47 +134,74 @@ class ForestCoverClassifier:
             pickle.dump(pinfo, pf)
 
 
-	# Cross Validation
-	#t_start = time.time()
-	N = self.X_train.shape[0]
-	#kf = KFold(N, n_folds=10)
-	#kf = LeaveOneOut(N)
-	folds = 10
-	kf = StratifiedKFold(self.y_train,folds)
-	i=0
-	sum_acc = 0
-	for train,test in kf:
-		X_train, X_test, y_train, y_test = self.X_train[train], self.X_train[test], self.y_train[train], self.y_train[test]
-	# X_train, X_test, y_train, y_test = train_test_split(self.X_train,
-	#						    self.y_train,
-	#						    test_size=0.2,
-	#						    random_state=self.randomSeed)
-	# clf = LinearSVC()
-		clf = classifyFunc(**classifyArgs)
-		clf.fit(X_train, y_train)
-		y_pred = clf.predict(X_test)
-		score = clf.score(X_test, y_test)
-		sum_acc = sum_acc + score
-		CM = metrics.confusion_matrix(y_test, y_pred)
-#	# mAP = metrics.average_precision_score(y_test, y_pred)
-#	#t_end = time.time()
-#	# clRes = {'score': score, 'mAP':mAP, 'CM': CM, 'clf': clf }
+	if exptNum == -1:  # use GridSearchCV
+		clf = GridSearchCV(classifyFunc(**classifyArgs), gridsearchArgs,
+				   scoring=None, 
+				   loss_func=None,
+				   score_func=None,
+				   fit_params=None, 
+				   n_jobs=-1,
+				   iid=True,
+				   refit=True, 
+				   cv=None, 
+				   verbose=1, 
+				   pre_dispatch='2*n_jobs',
+				   error_score='raise'
+				  )
+		clf.fit(self.X_train, self.y_train)
+		print('Grid Scores: \n', clf.grid_scores_)
+		print('Best Estimator: \n', clf.best_estimator_)
+		print('Best Score: ', clf.best_score_)
+		print('Best Params: \n', clf.best_params_)
+		print('Scorer: ', clf.scorer_)
+		y_pred = clf.predict(self.X_test)
+		score = clf.score(self.X_test, y_pred)
 		clRes = {'score': score, 'CM': CM, 'clf': clf }
-		print('Score (mean accuracy): %f' % score)
-#	# print('Score (mAP): %f' % mAP)
 		with open(self.CLFile, 'wb') as f2:
 			pickle.dump(clRes, f2)
-#	# print('Confusion Matrix:')
-#	# print(CM)
-#	#print('Time for runClassifier: %f sec' % (t_end-t_start))
-		self.showConfusionMatrix(i)
-		i = i + 1
-	avg_acc = sum_acc / float(folds)
-	print('Average Accuracy %f' % avg_acc)
+	else:
+		# Cross Validation
+		#t_start = time.time()
+		N = self.X_train.shape[0]
+		#kf = KFold(N, n_folds=10)
+		#kf = LeaveOneOut(N)
+		folds = n_folds
+		kf = StratifiedKFold(self.y_train,folds)
+		i=0
+		sum_acc = 0
+		for train,test in kf:
+			X_train, X_test, y_train, y_test = self.X_train[train], self.X_train[test], self.y_train[train], self.y_train[test]
+		# X_train, X_test, y_train, y_test = train_test_split(self.X_train,
+		#						    self.y_train,
+		#						    test_size=0.2,
+		#						    random_state=self.randomSeed)
+		# clf = LinearSVC()
+			clf = classifyFunc(**classifyArgs)
+			clf.fit(X_train, y_train)
+			y_pred = clf.predict(X_test)
+			score = clf.score(X_test, y_test)
+			sum_acc = sum_acc + score
+			CM = metrics.confusion_matrix(y_test, y_pred)
+	#	# mAP = metrics.average_precision_score(y_test, y_pred)
+	#	#t_end = time.time()
+	#	# clRes = {'score': score, 'mAP':mAP, 'CM': CM, 'clf': clf }
+			clRes = {'score': score, 'CM': CM, 'clf': clf }
+			print('Score (mean accuracy): %f' % score)
+	#	# print('Score (mAP): %f' % mAP)
+			with open(self.CLFile, 'wb') as f2:
+				pickle.dump(clRes, f2)
+	#	# print('Confusion Matrix:')
+	#	# print(CM)
+	#	#print('Time for runClassifier: %f sec' % (t_end-t_start))
+			self.showConfusionMatrix(i)
+			i = i + 1
+		avg_acc = sum_acc / float(folds)
+		print('Average Accuracy %f' % avg_acc)
 
 
-#	clf = classifyFunc(**classifyArgs)
-#	clf.fit(self.X_train, self.y_train)
+#		clf = classifyFunc(**classifyArgs)
+#		clf.fit(self.X_train, self.y_train)
+
 	if hasattr(clf, 'oob_score_'):
 		print('OOB Score: %f' % clf.oob_score_)
 	y_test_pred = clf.predict(self.X_test)
@@ -196,28 +224,39 @@ class ForestCoverClassifier:
             # plt.show()
             #plt.savefig('cm_%d.png' % (i))
 
-    def runAlgo(self, algo, fixedParamsDict, variableParamsDict, patches=True):
+    def runAlgo(self, algo, fixedParamsDict, variableParamsDict, cv=False, n_folds=10):
 
 	y_pred = []
         utils.mkdir_p(self.outDir)
 
         self.readDataset()
 
-        A = variableParamsDict
-        X = list(itertools.product(*A.values()))
-        D = [dict(zip(A.keys(), x)) for x in X]
+	if cv:
+		# Select best parameters by grid search and cross validation
+		y_pred = self.runClassifier(algo, fixedParamsDict,
+						 gridsearchArgs=variableParamsDict,
+						 n_folds=n_folds, 
+						 exptNum=-1)
 
-        exptCtr = 0
-        for d in D:
-            params = {}
-            params = d.copy()
-            params.update(fixedParamsDict)
-            print(params)
-            y_test_pred = self.runClassifier(algo, params, exptCtr)
-	    y_pred.append(y_test_pred)
-	    outputDir = self.outDir + os.sep + 'expt_%d' % (exptCtr)
-	    self.save_sub(outputDir, y_test_pred)
-            exptCtr = exptCtr + 1
+		outputDir = self.outDir + os.sep
+		self.save_sub(outputDir, y_test_pred)
+	else:
+		# run cross validation to get scores, but train on whole data
+		A = variableParamsDict
+		X = list(itertools.product(*A.values()))
+		D = [dict(zip(A.keys(), x)) for x in X]
+		exptCtr = 0
+		for d in D:
+		    params = {}
+		    params = d.copy()
+		    params.update(fixedParamsDict)
+		    print(params)
+		    y_test_pred = self.runClassifier(algo, params, exptNum=exptCtr, n_folds=n_folds)
+		    y_pred.append(y_test_pred)
+		    outputDir = self.outDir + os.sep + 'expt_%d' % (exptCtr)
+		    self.save_sub(outputDir, y_test_pred)
+		    exptCtr = exptCtr + 1
+		y_pred = self.runClassifier(algo, params, exptNum=n_folds, n_folds=n_folds)	
 
 	return y_pred
 
@@ -232,17 +271,41 @@ class ForestCoverClassifier:
 	utils.mkdir_p(outputDir)
 	out_df.to_csv(fname, index=False)
 
-
     def classify(self):
+   	
+    	# 3) Random Forest
+	rfVarParams = {
+			'n_estimators':[10, 100, 1000],
+			'criterion':['gini', 'entropy']
+		      }
 
+        rfFixedParams = {
+			'max_depth':None,
+			'min_samples_split':2,
+			'min_samples_leaf':1,
+			'min_weight_fraction_leaf':0.0,
+			'max_features':'auto',
+			'max_leaf_nodes':None,
+			'bootstrap':True,
+			'oob_score':True,
+			'n_jobs':4,
+			'random_state':self.randomSeed,
+			'verbose':1,
+			'warm_start':False,
+			'class_weight':'auto'
+		      }
+        self.runAlgo(RandomForestClassifier, rfFixedParams, rfVarParams, cv=True)
 
-#     XGBoost
-      xgbVarParams = {'objective':['multi:softmax']}
-      xgbFixedParams = {'silent':0}
-      y_pred = self.runAlgo(XGBClassifier, xgbFixedParams, xgbVarParams)
-      print("#Experiments: %d" % (len(y_pred)))
-	
-	#Nearest Neighbour
+#    def classify(self):
+#
+#     # 1) XGBoost
+#      xgbVarParams = {'objective':['multi:softmax']}
+#      xgbFixedParams = {'silent':0}
+#      y_pred = self.runAlgo(XGBClassifier, xgbFixedParams, xgbVarParams)
+#	
+#    def classify(self):
+#
+#	# 2) Nearest Neighbour
 #	nnVarParams = {
 #			'n_neighbors':[5],
 #			'algorithm':['auto']#,'ball_tree','kd_tree','brute']
@@ -259,36 +322,11 @@ class ForestCoverClassifier:
 #	print("#Experiments: %d" % (len(y_pred)))
 #
 #
-#   def classify(self):
-#    	
-#	#Random Forest
-#	rfVarParams = {
-#			'n_estimators':[100],
-#			'criterion':['gini']
-#		      }
 #
-#        rfFixedParams = {
-#			'max_depth':None,
-#			'min_samples_split':2,
-#			'min_samples_leaf':1,
-#			'min_weight_fraction_leaf':0.0,
-#			'max_features':'auto',
-#			'max_leaf_nodes':None,
-#			'bootstrap':True,
-#			'oob_score':True,
-#			'n_jobs':4,
-#			'random_state':self.randomSeed,
-#			'verbose':1,
-#			'warm_start':False,
-#			'class_weight':'auto'
-#		      }
-#        self.runAlgo(RandomForestClassifier, rfFixedParams, rfVarParams)
-#        self.save_sub()
-
 #   def classify(self):
 #
 #        # Classification
-#        ## 1) LinearSVC
+#        ## 4) LinearSVC
 #        linearSVCVarParams = {'penalty': ['l2']}
 #        linearSVCFixedParams = {'loss':'squared_hinge',
 #                                'dual':True,
@@ -305,7 +343,7 @@ class ForestCoverClassifier:
 #        self.runAlgo(LinearSVC, linearSVCFixedParams, linearSVCVarParams)
 #
 #	
-#	## 2) SVM (kernel)
+#	## 5) SVM (kernel)
 #        SVCVarParams = {'C':[1.0]}
 #        SVCFixedParams = { 'kernel':'rbf',
 #                           'degree':3,
@@ -325,7 +363,7 @@ class ForestCoverClassifier:
 #
 #    def classify(self):
 #	  
-#	  #ADA Boost
+#	  # 6) ADA Boost
 #	  adaVarParams = { 
 #			   'base_estimator':[None],
 #			   'n_estimators':[50],
@@ -341,7 +379,7 @@ class ForestCoverClassifier:
 #
 #    def classify(self):
 #
-#	    #GradientBoostClassifier
+#	    # 7) GradientBoostClassifier
 #	    gbcVarParams = {	    
 #	  		     'loss':['deviance'],
 #			   }
@@ -365,7 +403,7 @@ class ForestCoverClassifier:
 # 	
 #    def classify(self):
 #	    
-#	    #naive-bayes
+#	    # 8) naive-bayes
 #	    nbVarParams = {
 #			  }
 #
@@ -374,4 +412,3 @@ class ForestCoverClassifier:
 #
 #	    self.runAlgo(GaussianNB,nbFixedParams,nbVarParams)
 #	    self.save_sub()
-#    
