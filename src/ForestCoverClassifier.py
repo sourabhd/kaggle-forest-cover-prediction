@@ -210,16 +210,19 @@ class ForestCoverClassifier:
             params.update(fixedParamsDict)
             print(params)
             self.runClassifier(algo, params, exptCtr)
+	    outputDir = self.outDir + os.sep + 'expt_%d' % (exptCtr)
+	    self.save_sub(outputDir)
             exptCtr = exptCtr + 1
 
-    def save_sub(self):
+    def save_sub(self, outputDir):
 	
 	pred_df = pd.DataFrame(self.y_pred, columns=['Cover_Type'])
 	print(pred_df.head())
 	out_df = pd.concat([self.test_index, pred_df], axis=1)
 	print(out_df.head())
-	fname = self.runinfo['git_rev'][0:8] + ".csv"
+	fname = outputDir + os.sep + self.runinfo['git_rev'][0:8] + ".csv"
 	print(fname)
+	utils.mkdir_p(outputDir)
 	out_df.to_csv(fname, index=False)
 
 
@@ -239,7 +242,6 @@ class ForestCoverClassifier:
 			  'metric_params':None
 			}
 	self.runAlgo(KNeighborsClassifier, nnFixedParams, nnVarParams)
-	self.save_sub()
 
 #   def classify(self):
 #    	
