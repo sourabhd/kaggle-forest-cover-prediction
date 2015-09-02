@@ -157,7 +157,7 @@ class ForestCoverClassifier:
 		print('Best Score: ', clf.best_score_)
 		print('Best Params: \n', clf.best_params_)
 		print('Scorer: ', clf.scorer_)
-		y_pred = clf.predict(self.Y_test_bin)
+		y_pred = clf.predict(self.Y_test_bin).astype(int)
                 return y_pred
 		# score = clf.score(self.X_test, y_pred)
 		# clRes = {'score': score, 'clf': clf }
