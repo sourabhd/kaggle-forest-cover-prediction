@@ -27,12 +27,13 @@ from sklearn.cross_validation import StratifiedKFold
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.ensemble import AdaBoostClassifier
+from sklearn.ensemble import ExtraTreesClassifier
 from sklearn.naive_bayes import GaussianNB
 from sklearn.grid_search import GridSearchCV
 #from sklearn.cross_validation import LeaveOneOut
 import sklearn
-import xgboost as xgb
-from xgboost import XGBClassifier
+#import xgboost as xgb
+#from xgboost import XGBClassifier
 
 class ForestCoverClassifier:
     """Forest Cover Classifer"""
@@ -271,31 +272,31 @@ class ForestCoverClassifier:
 	utils.mkdir_p(outputDir)
 	out_df.to_csv(fname, index=False)
 
-    def classify(self):
-   	
-    	# 3) Random Forest
-	rfVarParams = {
-			'n_estimators':[10, 100, 1000],
-			'criterion':['gini', 'entropy']
-		      }
-
-        rfFixedParams = {
-			'max_depth':None,
-			'min_samples_split':2,
-			'min_samples_leaf':1,
-			'min_weight_fraction_leaf':0.0,
-			'max_features':'auto',
-			'max_leaf_nodes':None,
-			'bootstrap':True,
-			'oob_score':True,
-			'n_jobs':4,
-			'random_state':self.randomSeed,
-			'verbose':1,
-			'warm_start':False,
-			'class_weight':'auto'
-		      }
-        self.runAlgo(RandomForestClassifier, rfFixedParams, rfVarParams, cv=True)
-
+#    def classify(self):
+#   	
+#    	# 3) Random Forest
+#	rfVarParams = {
+#			'n_estimators':[10, 100, 1000],
+#			'criterion':['gini', 'entropy']
+#		      }
+#
+#        rfFixedParams = {
+#			'max_depth':None,
+#			'min_samples_split':2,
+#			'min_samples_leaf':1,
+#			'min_weight_fraction_leaf':0.0,
+#			'max_features':'auto',
+#			'max_leaf_nodes':None,
+#			'bootstrap':True,
+#			'oob_score':True,
+#			'n_jobs':4,
+#			'random_state':self.randomSeed,
+#			'verbose':1,
+#			'warm_start':False,
+#			'class_weight':'auto'
+#		      }
+#        self.runAlgo(RandomForestClassifier, rfFixedParams, rfVarParams, cv=True)
+#
 #    def classify(self):
 #
 #     # 1) XGBoost
@@ -412,3 +413,30 @@ class ForestCoverClassifier:
 #
 #	    self.runAlgo(GaussianNB,nbFixedParams,nbVarParams)
 #	    self.save_sub()
+
+    def classify(self):
+
+	  # 9) ExtraTreesClassifier
+	  etcVarParams = {
+			   'n_estimators':[10,100,200],
+			   'criterion':['gini','entropy'],
+			 }
+	  etcFixedParams = {
+			     'max_depth':None,
+			     'min_samples_split':2,
+			     'min_samples_leaf':1, 
+			     'min_weight_fraction_leaf':0.0, 
+			     'max_features':'auto', 
+			     'max_leaf_nodes':None,
+			     'bootstrap':True,
+			     'oob_score':True,
+			     'n_jobs':2,
+			     'random_state':self.randomSeed,
+			     'verbose':1,
+			     'warm_start':False,
+			     'class_weight':'auto'
+			    }
+
+	  self.runAlgo(ExtraTreesClassifier,etcFixedParams,etcVarParams,cv=True)
+
+
