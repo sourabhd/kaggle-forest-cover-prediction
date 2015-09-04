@@ -44,8 +44,8 @@ class ForestCoverClassifier:
 
         self.runinfo = runinfo
         print('Numpy:', np.__version__)
-	print('Pandas:', pd.__version__)
-	print('Scikit-Learn:', sklearn.__version__)
+        print('Pandas:', pd.__version__)
+        print('Scikit-Learn:', sklearn.__version__)
         self.config = ConfigParser.SafeConfigParser()
         self.config.read(settings)
         self.randomSeed = int(self.config.get('system', 'random_seed'))
@@ -294,12 +294,12 @@ class ForestCoverClassifier:
 
         ## 1) Random Forest
         rfVarParams = {
-                       'n_estimators':[100],
-                       'criterion':['gini']
+                       'n_estimators':[100, 1000],
+                       'criterion':['gini', 'entropy'],
+                       'max_depth':[None, 3, 10, 100]
                        }
 
         rfFixedParams = {
-                         'max_depth':None,
                          'min_samples_split':2,
                          'min_samples_leaf':1,
                          'min_weight_fraction_leaf':0.0,
@@ -315,12 +315,12 @@ class ForestCoverClassifier:
                         }
 
         ## 2) XGBoost
-        xgbVarParams = {'objective':['multi:softmax']}
+        xgbVarParams = {}
         xgbFixedParams = {'silent':0}
 
         ## 3) Nearest Neighbour
         nnVarParams = {
-                       'n_neighbors':[5],
+                       'n_neighbors':[5, 10, 15],
                        'algorithm':['auto']#,'ball_tree','kd_tree','brute']
                       }
 
@@ -351,7 +351,7 @@ class ForestCoverClassifier:
                                }
 
         ## 5) SVM (kernel)
-        SVCVarParams = {'C':[1.0]}
+        SVCVarParams = {'C':[0.25, 0.5, 0.75, 1.0]}
         SVCFixedParams = { 'kernel':'rbf',
                            'degree':3,
                            'gamma':0.0,
@@ -378,16 +378,16 @@ class ForestCoverClassifier:
                          }   
 
         ## 7) GradientBoostClassifier
-        gbcVarParams = {'loss':['deviance'], 
-                        'learning_rate':[ 0.1],
-                        'n_estimators':[100]
+        gbcVarParams = {'loss':['deviance', 'exponential'], 
+                        'learning_rate':[0.01, 0.1, 0.5, 1.0],
+                        'n_estimators':[100, 1000],
+                        'max_depth':[3, 30, 300],
+                        'subsample':[0.25, 0.5, 0.75, 1.0],
                        }
         gbcFixedParams = {  
-                          'subsample':1.0,
                           'min_samples_split':2,
                           'min_samples_leaf':1,
                           'min_weight_fraction_leaf':0.0, 
-                          'max_depth':3,
                           'init':None,
                           'random_state': self.randomSeed,
                           'max_features':None,
@@ -401,8 +401,8 @@ class ForestCoverClassifier:
         nbFixedParams = { }
 
         ## 9) Logistic Regression
-        logisticVarParams = { 'penalty': ['l2'],
-                              'C': [0.26, 0.5, 0.75, 1.0]
+        logisticVarParams = { 'penalty': ['l1', 'l2'],
+                              'C': [0.25, 0.5, 0.75, 1.0]
                             }
         logisticFixedParams = {
                                'dual':False,
@@ -410,7 +410,7 @@ class ForestCoverClassifier:
                                'fit_intercept':True,
                                'intercept_scaling':1,
                                'class_weight':None,
-                               'random_state':None,
+                               'random_state':self.randomSeed,
                                'solver':'liblinear',
                                'max_iter':1000000,
                                'multi_class':'ovr',
@@ -420,7 +420,9 @@ class ForestCoverClassifier:
         classifier = [
                       ('Random-Forests', RandomForestClassifier, rfFixedParams, rfVarParams),
                       ('GradientBoost', GradientBoostingClassifier, gbcFixedParams, gbcVarParams),
-#                      ('LibLinear', LinearSVC, linearSVCFixedParams, linearSVCVarParams)
+                      ('LibLinear', LinearSVC, linearSVCFixedParams, linearSVCVarParams),
+                      ('LibSVM', SVC, SVCFixedParams, SVCVarParams),
+                      ('NearestNeighbour', KNeighborsClassifier, nnFixedParams, nnVarParams),
                      ]
 
         utils.mkdir_p(self.outDir)
