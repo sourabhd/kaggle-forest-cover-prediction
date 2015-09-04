@@ -34,8 +34,21 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.grid_search import GridSearchCV
 #from sklearn.cross_validation import LeaveOneOut
 import sklearn
+from multiprocessing import Pool
 #import xgboost as xgb
 #from xgboost import XGBClassifier
+
+
+
+def worker(S_class):
+		
+    clname, cl, fixedParams, varParams, Obj =  tuple(S_class)
+    
+    Obj.readDataset()
+    yp, yp_test = Obj.runAlgo(cl, fixedParams, varParams, cv=False)
+    
+    return (yp,yp_test)
+
 
 class ForestCoverClassifier:
     """Forest Cover Classifer"""
@@ -293,6 +306,9 @@ class ForestCoverClassifier:
 
     def classify(self):
 
+	
+        utils.mkdir_p(self.outDir)
+        self.readDataset()
         ## 1) Random Forest
         rfVarParams = {
                        'n_estimators':[100, 1000],
@@ -310,7 +326,7 @@ class ForestCoverClassifier:
                          'oob_score':True,
                          'n_jobs':4,
                          'random_state':self.randomSeed,
-                         'verbose':1,
+                         'verbose':0,
                          'warm_start':False,
                          'class_weight':'auto'
                         }
@@ -346,7 +362,7 @@ class ForestCoverClassifier:
                                 'fit_intercept':True,
                                 'intercept_scaling':1,
                                 'class_weight':'auto',
-                                'verbose':1,
+                                'verbose':0,
                                 'random_state':self.randomSeed,
                                 'max_iter':1e6
                                }
@@ -392,7 +408,7 @@ class ForestCoverClassifier:
                           'init':None,
                           'random_state': self.randomSeed,
                           'max_features':None,
-                          'verbose':1,
+                          'verbose':0,
                           'max_leaf_nodes':None,
                           'warm_start':False
                          }
@@ -415,7 +431,7 @@ class ForestCoverClassifier:
                                'solver':'liblinear',
                                'max_iter':1000000,
                                'multi_class':'ovr',
-                               'verbose':1
+                               'verbose':0
                               }
 
 	## 10) ExtraTreesClassifier
@@ -434,34 +450,37 @@ class ForestCoverClassifier:
 			  'oob_score':True,
 			  'n_jobs':4,
 			  'random_state':self.randomSeed,
-			  'verbose':1,
+			  'verbose':0,
 			  'warm_start':False,
 			  'class_weight':'auto'
                          }
 			  
 
 
-
         classifier = [
-                      ('Random-Forests', RandomForestClassifier, rfFixedParams, rfVarParams),
-                      ('GradientBoost', GradientBoostingClassifier, gbcFixedParams, gbcVarParams),
-                      ('LibLinear', LinearSVC, linearSVCFixedParams, linearSVCVarParams),
-                      ('LibSVM', SVC, SVCFixedParams, SVCVarParams),
-                      ('NearestNeighbour', KNeighborsClassifier, nnFixedParams, nnVarParams),
+                      ['Random-Forests', RandomForestClassifier, rfFixedParams, rfVarParams, None],
+                   #   ['GradientBoost', GradientBoostingClassifier, gbcFixedParams, gbcVarParams, None],
+                      ['LibLinear', LinearSVC, linearSVCFixedParams, linearSVCVarParams, None],
+                      ['LibSVM', SVC, SVCFixedParams, SVCVarParams, None],
+                      ['NearestNeighbour', KNeighborsClassifier, nnFixedParams, nnVarParams, None],
                      ]
+	
+	num_pool = len(classifier)
+	for i in range(num_pool):
+		classifier[i][4] = ForestCoverClassifier(self.runinfo)
 
-        utils.mkdir_p(self.outDir)
-        self.readDataset()
        
         y_pred = []
         Y = np.empty((self.X_train.shape[0], 0))
         Y_test = np.empty((self.X_test.shape[0], 0))
-        for (clname, cl, fixedParams, varParams) in classifier:
-            yp, yp_test = self.runAlgo(cl, fixedParams, varParams, cv=False)
+	P = Pool(num_pool)
+	pool_Rslt = P.map(worker,classifier)
+        
+	for (yp,yp_test) in pool_Rslt:
             Y = np.hstack((Y, yp))
             Y_test = np.hstack((Y_test, yp_test))
             y_pred.append(yp)
-            print(clname, len(yp))
+            #print(clname, len(yp))
 
         ohe = OneHotEncoder(n_values=7, dtype=int)
         self.Y_bin = ohe.fit_transform(Y-1).astype(float)
