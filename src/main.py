@@ -24,7 +24,8 @@ if __name__ == '__main__':
     try:
         fcc = ForestCoverClassifier(runinfo)
         # fcc.classify()
-        fcc.classifyNN()
+        # fcc.classifyNN()
+        fcc.classifyNN_nolearn()
         end_time = time.time()
         end_ctime = time.clock()
         print('Success: wall time:  %f sec, processor time: %f sec'

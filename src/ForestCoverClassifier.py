@@ -41,6 +41,15 @@ import lmdb
 import caffe
 from caffe.proto import caffe_pb2
 import deepdish as dd
+import nolearn
+from lasagne.layers import DenseLayer
+from lasagne.layers import InputLayer
+from lasagne.nonlinearities import softmax
+from lasagne.nonlinearities import rectify
+from lasagne.updates import nesterov_momentum
+from nolearn.lasagne import NeuralNet
+from nolearn.lasagne import TrainSplit
+import lasagne
 
 
 def worker(S_class):
@@ -63,6 +72,7 @@ class ForestCoverClassifier:
         print('Numpy:', np.__version__)
         print('Pandas:', pd.__version__)
         print('Scikit-Learn:', sklearn.__version__)
+        print('Lasagne:', lasagne.__version__)
         self.config = ConfigParser.SafeConfigParser()
         self.config.read(settings)
         self.randomSeed = int(self.config.get('system', 'random_seed'))
@@ -298,7 +308,7 @@ class ForestCoverClassifier:
 
     def save_sub(self, outputDir, y_test_pred):
 	
-	pred_df = pd.DataFrame(y_test_pred, columns=['Cover_Type'])
+	pred_df = pd.DataFrame(y_test_pred.astype(int), columns=['Cover_Type'])
 	print(pred_df.head())
 	out_df = pd.concat([self.test_index, pred_df], axis=1)
 	print(out_df.head())
@@ -307,6 +317,41 @@ class ForestCoverClassifier:
 	utils.mkdir_p(outputDir)
 	out_df.to_csv(fname, index=False)
 
+    def classifyNN_nolearn(self):
+
+        utils.mkdir_p(self.outDir)
+        self.readDataset()
+        nn = NeuralNet(layers=[ # network
+                               ('input', InputLayer),
+                               ('fc1', DenseLayer),
+                               ('fc2', DenseLayer),
+                               ('fc3', DenseLayer),
+                               ('output', DenseLayer)
+                              ],
+                        # layer params
+                        input_shape = (None, self.X_train.shape[1]),
+                        fc1_num_units = 100,
+                        fc2_num_units = 500,
+                        fc3_num_units = 100,
+                        output_num_units = 7,
+                        # non-linearities
+                        fc1_nonlinearity = rectify, 
+                        fc2_nonlinearity = rectify, 
+                        fc3_nonlinearity = rectify, 
+                        output_nonlinearity = softmax,
+                        # update params
+                        update = nesterov_momentum,
+                        update_learning_rate = 0.01,
+                        update_momentum = 0.9,
+                        train_split = TrainSplit(eval_size=0.2),
+                        verbose = 1,
+                        max_epochs=1000
+                        )
+
+        nn.fit(self.X_train.astype(np.float32), self.y_train.astype(np.int32))
+        print('Prediction.....................................................')
+        y_test = nn.predict(self.X_test.astype(np.float32))
+        self.save_sub(self.outDir, y_test)
 
     def classifyNN(self):
         
