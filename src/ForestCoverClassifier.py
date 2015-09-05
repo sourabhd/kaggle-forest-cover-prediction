@@ -37,7 +37,10 @@ import sklearn
 from multiprocessing import Pool
 #import xgboost as xgb
 #from xgboost import XGBClassifier
-
+import lmdb
+import caffe
+from caffe.proto import caffe_pb2
+import deepdish as dd
 
 
 def worker(S_class):
@@ -303,6 +306,60 @@ class ForestCoverClassifier:
 	print(fname)
 	utils.mkdir_p(outputDir)
 	out_df.to_csv(fname, index=False)
+
+
+    def classifyNN(self):
+        
+        utils.mkdir_p(self.outDir)
+        self.readDataset()
+     
+#       map_size = dd.bytesize(self.X_train) * 2
+#        env = lmdb.open('../computed/X_train_lmdb',
+#                             map_size=map_size)
+#        for i in range(self.X_train.shape[0]):
+#            if i % 1000 == 0:
+#                print(i)
+#            datum = caffe.proto.caffe_pb2.Datum()
+#            datum.data = self.X_train[i, :].tostring()
+#            datum.label = int(self.y_train[i])
+#            with env.begin(write=True) as txn:
+#                txn.put(str(i), datum.SerializeToString())
+#        env.close()
+
+        map_size = dd.bytesize(self.X_test) * 2
+        env = lmdb.open('../computed/X_test_lmdb',
+                             map_size=map_size)
+        for i in range(self.X_test.shape[0]):
+            if i % 1000 == 0:
+                print(i)
+            datum = caffe.proto.caffe_pb2.Datum()
+            datum.data = self.X_test[i, :].tostring()
+            with env.begin(write=True) as txn:
+                txn.put(str(i), datum.SerializeToString())
+        env.close()
+
+
+    
+        # lmdb_env = lmdb.open('../computed/X_train_lmdb/')
+        lmdb_env = lmdb.open('../computed/X_test_lmdb/')
+        lmdb_txn = lmdb_env.begin()
+        lmdb_cursor = lmdb_txn.cursor()
+        datum = caffe_pb2.Datum()
+        i = 0
+        for key, value in lmdb_cursor:
+            datum.ParseFromString(value)
+            x = np.fromstring(datum.data)
+            y = datum.label
+
+            print(x)
+            print(y)
+
+            if i >= 10:
+                break
+            i = i + 1
+        lmdb_env.close()        
+            
+
 
     def classify(self):
 

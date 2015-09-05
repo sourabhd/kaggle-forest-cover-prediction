@@ -23,7 +23,8 @@ if __name__ == '__main__':
     start_ctime = time.clock()
     try:
         fcc = ForestCoverClassifier(runinfo)
-        fcc.classify()
+        # fcc.classify()
+        fcc.classifyNN()
         end_time = time.time()
         end_ctime = time.clock()
         print('Success: wall time:  %f sec, processor time: %f sec'
