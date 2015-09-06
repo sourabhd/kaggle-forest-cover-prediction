@@ -44,9 +44,11 @@ import deepdish as dd
 import nolearn
 from lasagne.layers import DenseLayer
 from lasagne.layers import InputLayer
-from lasagne.nonlinearities import softmax
-from lasagne.nonlinearities import rectify
-from lasagne.updates import nesterov_momentum
+#from lasagne.nonlinearities import softmax
+#from lasagne.nonlinearities import rectify
+# from lasagne.updates import nesterov_momentum
+import lasagne.updates as upd
+import lasagne.nonlinearities as nl
 from nolearn.lasagne import NeuralNet
 from nolearn.lasagne import TrainSplit
 import lasagne
@@ -312,7 +314,7 @@ class ForestCoverClassifier:
 	print(pred_df.head())
 	out_df = pd.concat([self.test_index, pred_df], axis=1)
 	print(out_df.head())
-	fname = outputDir + os.sep + self.runinfo['git_rev'][0:8] + ".csv"
+	fname = outputDir + os.sep + self.runinfo['git_rev'][0:8] +"_tanh" + ".csv"
 	print(fname)
 	utils.mkdir_p(outputDir)
 	out_df.to_csv(fname, index=False)
@@ -326,32 +328,41 @@ class ForestCoverClassifier:
                                ('fc1', DenseLayer),
                                ('fc2', DenseLayer),
                                ('fc3', DenseLayer),
+                               ('fc4', DenseLayer),
+                               ('fc5', DenseLayer),
+                               ('fc6', DenseLayer),
                                ('output', DenseLayer)
                               ],
                         # layer params
                         input_shape = (None, self.X_train.shape[1]),
-                        fc1_num_units = 100,
-                        fc2_num_units = 500,
-                        fc3_num_units = 100,
+                        fc1_num_units = 108 ,
+                        fc2_num_units = 216,
+                        fc3_num_units = 432,
+                        fc4_num_units = 864,
+                        fc5_num_units = 1728,
+                        fc6_num_units = 3456,
                         output_num_units = 7,
                         # non-linearities
-                        fc1_nonlinearity = rectify, 
-                        fc2_nonlinearity = rectify, 
-                        fc3_nonlinearity = rectify, 
-                        output_nonlinearity = softmax,
+                        fc1_nonlinearity = nl.tanh, 
+                        fc2_nonlinearity = nl.tanh, 
+                        fc3_nonlinearity = nl.tanh, 
+                        fc4_nonlinearity = nl.tanh, 
+                        fc5_nonlinearity = nl.tanh, 
+                        fc6_nonlinearity = nl.tanh, 
+                        output_nonlinearity = nl.softmax,
                         # update params
-                        update = nesterov_momentum,
+                        update = upd.momentum,
                         update_learning_rate = 0.01,
                         update_momentum = 0.9,
                         train_split = TrainSplit(eval_size=0.2),
                         verbose = 1,
-                        max_epochs=1000
+                        max_epochs=5000
                         )
 
-        nn.fit(self.X_train.astype(np.float32), self.y_train.astype(np.int32))
+        nn.fit(self.X_train.astype(np.float32), self.y_train.astype(np.int32) - 1)
         print('Prediction.....................................................')
         y_test = nn.predict(self.X_test.astype(np.float32))
-        self.save_sub(self.outDir, y_test)
+        self.save_sub(self.outDir, y_test+1)
 
     def classifyNN(self):
         
